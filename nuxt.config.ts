@@ -14,7 +14,10 @@ const config: NuxtConfig = {
 
   env: {
     SPOTIFY_CLIENT_ID: '080a5d8437904ed4a343cd73f9f1ad62',
-    SPOTIFY_REDIRECT_URI: 'http://localhost:3000/oauth',
+    SPOTIFY_REDIRECT_URI:
+      process.env.NODE_ENV === 'production'
+        ? 'https://florianpallas.github.io/spotify-tools/oauth'
+        : 'http://localhost:3000/oauth',
   },
 
   // Global CSS (https://go.nuxtjs.dev/config-css)

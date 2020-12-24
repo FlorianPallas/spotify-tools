@@ -1,6 +1,17 @@
 <template>
   <div class="wrapper">
-    <h2>Source Playlists</h2>
+    <header class="header">
+      <h1 class="title">PLAYLIST MERGER</h1>
+      <p class="description">Easily merge multiple playlists into one!</p>
+    </header>
+    <div class="info">
+      <h2>Source Playlists</h2>
+      <p>
+        Select one or more playlists. The tracks from these playlists will be
+        merged and put into the target playlist. The tracks of the source
+        playlists will not be altered.
+      </p>
+    </div>
     <div class="playlist-grid">
       <div
         v-for="(playlist, index) in playlists"
@@ -13,7 +24,15 @@
         <p class="playlist--name">{{ playlist.name }}</p>
       </div>
     </div>
-    <h2>Target Playlist</h2>
+    <div class="info">
+      <h2>Target Playlist</h2>
+      <strong>The tracks in this playlist will be overridden!</strong>
+      <p>
+        Select one playlist. This playlist will later contain all tracks of the
+        selected source playlists. If you are unsure, create and choose an empty
+        playlist instead.
+      </p>
+    </div>
     <div class="playlist-grid">
       <div
         v-for="(playlist, index) in playlists"
@@ -26,8 +45,10 @@
         <p class="playlist--name">{{ playlist.name }}</p>
       </div>
     </div>
-    <Button @click="merge()">Confirm &amp; Merge</Button>
-    <Button secondary href="/">Cancel</Button>
+    <div class="buttons">
+      <Button @click="merge()">Confirm &amp; Merge</Button>
+      <Button secondary href="/">Cancel</Button>
+    </div>
   </div>
 </template>
 
@@ -74,8 +95,6 @@ export default Vue.extend({
         tracks.push(...playlistTracks);
       }
 
-      console.log(tracks);
-
       // Remove duplicates
       const sourceIds = [] as string[];
       const sourceTracks = [] as Track[];
@@ -85,8 +104,6 @@ export default Vue.extend({
           sourceIds.push(track.id);
         }
       });
-
-      console.log(sourceTracks);
 
       // Get existing tracks in target playlist
       const targetTracks = await this.getPlaylistTracks(this.selectedTarget);
@@ -107,9 +124,6 @@ export default Vue.extend({
         }
       });
 
-      console.log(addUris);
-      console.log(removeUris);
-
       const confirmation = confirm(
         `Are you sure you want to merge the selected playlists into the target playlists?\n\n${addUris.length} tracks will be added, ${removeUris.length} tracks will be removed!`
       );
@@ -117,14 +131,20 @@ export default Vue.extend({
         return;
       }
 
-      if (removeUris.length > 0) {
-        await this.removePlaylistTracks(this.selectedTarget, removeUris);
-      }
-      if (addUris.length > 0) {
-        await this.addPlaylistTracks(this.selectedTarget, addUris);
+      try {
+        if (removeUris.length > 0) {
+          await this.removePlaylistTracks(this.selectedTarget, removeUris);
+        }
+        if (addUris.length > 0) {
+          await this.addPlaylistTracks(this.selectedTarget, addUris);
+        }
+      } catch (error) {
+        console.log(error);
+        alert('An Error occured!\nThe target playlist may be incomplete.');
+        return;
       }
 
-      alert('Playlists merged!');
+      alert('Playlists merged successfully!');
       this.selectedSource = [];
       this.selectedTarget = undefined;
     },
@@ -145,9 +165,6 @@ export default Vue.extend({
           this.selectedTarget = id;
         }
       }
-
-      console.log(this.selectedSource);
-      console.log(this.selectedTarget);
     },
     async getUserPlaylists() {
       const response = await this.$axios.$get(
@@ -189,7 +206,7 @@ export default Vue.extend({
         return;
       }
 
-      const response = await this.$axios.$delete(
+      await this.$axios.$delete(
         `https://api.spotify.com/v1/playlists/${id}/tracks`,
         {
           data: {
@@ -202,7 +219,6 @@ export default Vue.extend({
           },
         }
       );
-      console.log(response);
     },
     async addPlaylistTracks(id: string, uris: string[]) {
       // Split uris into chunks
@@ -214,7 +230,7 @@ export default Vue.extend({
         return;
       }
 
-      const response = await this.$axios.$post(
+      await this.$axios.$post(
         `https://api.spotify.com/v1/playlists/${id}/tracks`,
         {
           uris,
@@ -225,13 +241,18 @@ export default Vue.extend({
           },
         }
       );
-      console.log(response);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
+.wrapper {
+  max-width: 100rem;
+  margin: 10rem auto;
+  padding: 0 2rem;
+}
+
 .playlist-grid {
   display: flex;
   flex-flow: row wrap;
@@ -244,6 +265,8 @@ export default Vue.extend({
   width: 20rem;
   margin: 1rem;
   overflow: hidden;
+  transition: box-shadow 0.15s;
+  cursor: pointer;
 
   &--cover {
     height: 100%;
@@ -255,10 +278,41 @@ export default Vue.extend({
     left: 0;
     right: 0;
     text-align: center;
+    text-shadow: 0 0 0.5 rgba($color: #000, $alpha: 0.75);
   }
 
   &.selected {
     box-shadow: 0 0 0 0.2rem $primary;
+  }
+}
+
+.info {
+  margin-top: 5rem;
+  padding: 0 1rem;
+
+  strong {
+    color: $primary;
+  }
+}
+
+.buttons {
+  margin-top: 5rem;
+  button {
+    margin: 0 1rem;
+  }
+}
+
+.header {
+  box-shadow: 0 0 0 0.2rem $primary inset;
+  color: $primary;
+  margin: 0 1rem;
+  padding: 2rem 4rem;
+  border-radius: 0.5rem;
+  text-align: center;
+
+  .title,
+  .description {
+    margin: 1rem 0;
   }
 }
 </style>

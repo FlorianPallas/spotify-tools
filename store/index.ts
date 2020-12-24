@@ -9,17 +9,20 @@ export type RootState = ReturnType<typeof state>;
 export const getters: GetterTree<RootState, RootState> = {
   accessToken: (state) => state.accessToken,
   oAuthUrl: () => {
-    const scopes =
-      'playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative';
-    return (
-      'https://accounts.spotify.com/authorize' +
-      '?response_type=token' +
-      '&client_id=' +
-      process.env.SPOTIFY_CLIENT_ID +
-      (scopes ? '&scope=' + encodeURIComponent(scopes) : '') +
-      '&redirect_uri=' +
-      encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI)
-    );
+    return (scopes: string[], state: string = '/') => {
+      return (
+        'https://accounts.spotify.com/authorize' +
+        '?response_type=token' +
+        '&client_id=' +
+        process.env.SPOTIFY_CLIENT_ID +
+        (scopes ? '&scope=' + encodeURIComponent(scopes.join(' ')) : '') +
+        '&redirect_uri=' +
+        encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI) +
+        '&show_dialog=true' +
+        '&state=' +
+        encodeURIComponent(state)
+      );
+    };
   },
 };
 

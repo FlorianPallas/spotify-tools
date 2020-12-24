@@ -87,6 +87,11 @@ export default Vue.extend({
       isLoading: false,
     };
   },
+  head() {
+    return {
+      title: 'Playlist Merger | Spotify Tools',
+    };
+  },
   computed: {
     coverSrc() {
       return (playlist: Playlist) => {

@@ -1,5 +1,10 @@
 <template>
-  <button v-if="href === undefined" class="button" :class="{ secondary }">
+  <button
+    v-if="href === undefined"
+    class="button"
+    :class="{ secondary }"
+    @click="$emit('click', $event)"
+  >
     <slot />
   </button>
   <a

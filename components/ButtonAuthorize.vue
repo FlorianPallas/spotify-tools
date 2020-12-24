@@ -5,7 +5,7 @@
     :href="$store.getters.oAuthUrl"
     >Authorize</Button
   >
-  <Button v-else secondary @click.native="logout()">Logout</Button>
+  <Button v-else secondary @click="logout()">Logout</Button>
 </template>
 
 <script lang="ts">

@@ -40,6 +40,10 @@ const config: NuxtConfig = {
     scss: ['~/assets/styles/vars.scss', '~/assets/styles/mixins.scss'],
   },
 
+  router: {
+    base: process.env.NODE_ENV === 'production' ? '/spotify-tools/' : undefined,
+  },
+
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {},
 

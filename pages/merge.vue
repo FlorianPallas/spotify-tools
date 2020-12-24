@@ -3,6 +3,19 @@
     <header class="header">
       <h1 class="title">PLAYLIST MERGER</h1>
       <p class="description">Easily merge multiple playlists into one!</p>
+      <div class="buttons">
+        <ButtonAuthorize
+          :scopes="[
+            'playlist-modify-public',
+            'playlist-modify-private',
+            'playlist-read-private',
+            'playlist-read-collaborative',
+          ]"
+          state="/merge"
+          @logout="playlists = []"
+        />
+        <Button secondary href="/">Overview</Button>
+      </div>
     </header>
     <div class="info">
       <h2>Source Playlists</h2>
@@ -46,8 +59,17 @@
       </div>
     </div>
     <div class="buttons">
-      <Button @click="merge()">Confirm &amp; Merge</Button>
-      <Button secondary href="/">Cancel</Button>
+      <Button
+        :disabled="
+          $store.getters.accessToken === undefined ||
+          selectedSource.length < 1 ||
+          selectedTarget === undefined ||
+          isLoading
+        "
+        @click="merge()"
+        >{{ isLoading ? 'Merging ...' : 'Confirm & Merge' }}</Button
+      >
+      <Button secondary href="/">Overview</Button>
     </div>
   </div>
 </template>
@@ -62,6 +84,7 @@ export default Vue.extend({
       playlists: [] as Playlist[],
       selectedSource: [] as string[],
       selectedTarget: undefined as string | undefined,
+      isLoading: false,
     };
   },
   computed: {
@@ -77,7 +100,6 @@ export default Vue.extend({
   },
   mounted() {
     if (!this.$store.getters.accessToken) {
-      console.log('unauthorized');
       return;
     }
     this.getUserPlaylists();
@@ -87,6 +109,7 @@ export default Vue.extend({
       if (this.selectedSource.length < 1 || this.selectedTarget === undefined) {
         return;
       }
+      this.isLoading = true;
 
       // Gather all tracks
       const tracks = [] as Track[];
@@ -128,6 +151,7 @@ export default Vue.extend({
         `Are you sure you want to merge the selected playlists into the target playlists?\n\n${addUris.length} tracks will be added, ${removeUris.length} tracks will be removed!`
       );
       if (!confirmation) {
+        this.isLoading = false;
         return;
       }
 
@@ -141,12 +165,14 @@ export default Vue.extend({
       } catch (error) {
         console.log(error);
         alert('An Error occured!\nThe target playlist may be incomplete.');
+        this.isLoading = false;
         return;
       }
 
       alert('Playlists merged successfully!');
       this.selectedSource = [];
       this.selectedTarget = undefined;
+      this.isLoading = false;
     },
     toggle(type: 'source' | 'target', id: string) {
       if (type === 'source') {
@@ -256,6 +282,7 @@ export default Vue.extend({
 .playlist-grid {
   display: flex;
   flex-flow: row wrap;
+  margin-bottom: 5rem;
 }
 
 .playlist {
@@ -287,7 +314,6 @@ export default Vue.extend({
 }
 
 .info {
-  margin-top: 5rem;
   padding: 0 1rem;
 
   strong {
@@ -296,9 +322,10 @@ export default Vue.extend({
 }
 
 .buttons {
-  margin-top: 5rem;
+  margin-top: 2rem;
   button {
     margin: 0 1rem;
+    margin-bottom: 1rem;
   }
 }
 
@@ -306,6 +333,7 @@ export default Vue.extend({
   box-shadow: 0 0 0 0.2rem $primary inset;
   color: $primary;
   margin: 0 1rem;
+  margin-bottom: 5rem;
   padding: 2rem 4rem;
   border-radius: 0.5rem;
   text-align: center;

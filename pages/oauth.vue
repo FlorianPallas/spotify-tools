@@ -14,7 +14,11 @@ export default Vue.extend({
     }
     const query = this.parseQuery(hash.substring(1));
     this.$store.commit('SET_TOKEN', query.access_token);
-    this.$router.push('/');
+    if (query.state) {
+      this.$router.push(query.state);
+    } else {
+      this.$router.push('/');
+    }
   },
   methods: {
     parseQuery(queryString: string): any {

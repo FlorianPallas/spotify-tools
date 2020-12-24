@@ -2,8 +2,8 @@
   <button
     v-if="href === undefined"
     class="button"
-    :class="{ secondary }"
-    @click="$emit('click', $event)"
+    :class="{ secondary, disabled }"
+    @click="click"
   >
     <slot />
   </button>
@@ -38,6 +38,16 @@ export default Vue.extend({
     } as PropOptions<string | undefined>,
     outbound: { type: Boolean, default: false },
     secondary: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
+  },
+  methods: {
+    click(e: Event) {
+      if (this.disabled) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      this.$emit('click', event);
+    },
   },
 });
 </script>
@@ -76,5 +86,10 @@ export default Vue.extend({
     background: #fff;
     color: $background;
   }
+}
+
+.button.disabled {
+  background: #666;
+  cursor: not-allowed;
 }
 </style>
